@@ -45,7 +45,7 @@ jobs:
           dotnet tool install Dragonhill.DevOps.Cli --local
           
       - name: build the meta nuget package
-        run: dotnet tool run Dragonhill.DevOps.Cli metadata create-package --output releases ${{ steps.gitversion.outputs.semVer }}
+        run: dotnet tool run devops-cli metadata create-package --output releases ${{ steps.gitversion.outputs.semVer }}
         
       - if: github.ref == 'refs/heads/release'
         name: push the meta package to the github nuget feed
