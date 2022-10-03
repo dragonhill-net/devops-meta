@@ -2,3 +2,5 @@ nuget:
   packageName: Dragonhill.Devops.Meta
   authors:
     - Dragonhill
+  repositoryType: git
+  repositoryUrl: https://github.com/dragonhill-net/devops-meta
