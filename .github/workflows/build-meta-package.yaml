@@ -1,0 +1,52 @@
+on:
+  - push
+
+jobs:
+  build meta package:
+    runs-on: ubuntu-latest
+    
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+      DOTNET_NOLOGO: true
+      
+    steps:
+      - if: github.ref == 'refs/heads/release'
+        name: install GitVersion
+        uses: GitTools/actions/gitversion/setup@v0.9.13
+        with:
+          versionSpec: '5.x'
+        
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - if: github.ref == 'refs/heads/release'
+        name: calculate version
+        id: gitversion
+        uses: GitTools/actions/gitversion/execute@v0.9.13
+        with:
+          useConfigFile: true
+          
+      - if: github.ref == 'refs/heads/release'
+        name: set the version tag if on release branch
+        run: |
+          git tag v${{ steps.gitversion.outputs.semVer }}
+          git push origin v${{ steps.gitversion.outputs.semVer }}
+          
+      - name: setup dotnet
+        uses: actions/setup-dotnet@v3.0.0
+        with:
+          dotnet-version: 6.x
+          
+      - name: install the Dragonhill.DevOps.Cli tool
+        run: |
+          dotnet new tool-manifest
+          dotnet tool install Dragonhill.DevOps.Cli --local
+          
+      - name: build the meta nuget package
+        run: dotnet tool run Dragonhill.DevOps.Cli metadata create-package --output releases ${{ steps.gitversion.outputs.semVer }}
+        
+      - if: github.ref == 'refs/heads/release'
+        name: push the meta package to the github nuget feed
+        run: dotnet nuget push ./releases/Dragonhill.Devops.Meta.${{ steps.gitversion.outputs.semVer }}.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/dragonhill-net/index.json
