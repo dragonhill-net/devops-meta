@@ -10,8 +10,7 @@ jobs:
       DOTNET_NOLOGO: true
       
     steps:
-      - if: github.ref == 'refs/heads/release'
-        name: install GitVersion
+      - name: install GitVersion
         uses: GitTools/actions/gitversion/setup@v0.9.13
         with:
           versionSpec: '5.x'
@@ -21,8 +20,7 @@ jobs:
         with:
           fetch-depth: 0
           
-      - if: github.ref == 'refs/heads/release'
-        name: calculate version
+      - name: calculate version
         id: gitversion
         uses: GitTools/actions/gitversion/execute@v0.9.13
         with:
