@@ -29,8 +29,10 @@ jobs:
       - if: github.ref == 'refs/heads/release'
         name: set the version tag if on release branch
         run: |
-          git tag v${{ steps.gitversion.outputs.semVer }}
-          git push origin v${{ steps.gitversion.outputs.semVer }}
+          if [ -z $(git --no-pager tag --list "${{ steps.gitversion.outputs.semVer }}" --points-at HEAD) ]; then
+            git tag v${{ steps.gitversion.outputs.semVer }}
+            git push origin v${{ steps.gitversion.outputs.semVer }}
+          fi
           
       - name: setup dotnet
         uses: actions/setup-dotnet@v3.0.0
@@ -46,5 +48,5 @@ jobs:
         run: dotnet tool run devops-cli metadata create-package --output releases ${{ steps.gitversion.outputs.semVer }}
         
       - if: github.ref == 'refs/heads/release'
-        name: push the meta package to the github nuget feed
-        run: dotnet nuget push ./releases/Dragonhill.Devops.Meta.${{ steps.gitversion.outputs.semVer }}.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/${{ github.repository_owner }}
+        name: push the meta package to the nuget feed
+        run: dotnet nuget push --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }} ./releases/Dragonhill.DevOps.Meta.${{ steps.gitversion.outputs.semVer }}.nupkg  
